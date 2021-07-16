@@ -1,24 +1,32 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { useParams, useHistory } from "react-router";
 import Excalidraw from "@excalidraw/excalidraw";
 import { exportToBlob } from "@excalidraw/excalidraw";
+import { debounce } from "lodash";
 import firebase, { storage } from "../firebase";
 import { getFileBlob } from "../utils/blob.utils";
 
 const SAVE_DELAY_MS = 10000;
 
-function ExcalidrawComponent({ initialData, setIsSaving, autoSave }) {
+function ExcalidrawComponent({
+  initialData,
+  setIsSaving,
+  autoSave,
+  setInitialState,
+}) {
   const { drawSessionId } = useParams();
   const history = useHistory();
   const excalidrawRef = React.useRef();
 
   React.useEffect(() => {
-    console.log(history);
     if (!drawSessionId) {
       const drawSessionId = new Date().getTime().toString(36);
       history.replace(`/${drawSessionId}`);
     }
-  }, [drawSessionId, history]);
+    const appState = JSON.parse(localStorage.getItem(drawSessionId));
+    setInitialState(appState);
+  }, [drawSessionId, history, setInitialState]);
 
   const uploadCanvas = React.useCallback(async () => {
     // get all scene elements
@@ -50,7 +58,7 @@ function ExcalidrawComponent({ initialData, setIsSaving, autoSave }) {
         },
       });
     });
-  }, [drawSessionId, setIsSaving]);
+  }, [drawSessionId, excalidrawRef, setIsSaving]);
 
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -60,6 +68,11 @@ function ExcalidrawComponent({ initialData, setIsSaving, autoSave }) {
     return () => clearInterval(interval); // This represents the unmount function, in which it clears interval to prevent memory leaks.
   }, [autoSave, uploadCanvas]);
 
+  const onChange = debounce((elements, appState) => {
+    setInitialState({ elements, appState });
+    localStorage.setItem(drawSessionId, JSON.stringify({ elements, appState }));
+  }, 1);
+
   return (
     <div className="excalidraw-wrapper">
       <Excalidraw
@@ -67,10 +80,21 @@ function ExcalidrawComponent({ initialData, setIsSaving, autoSave }) {
           window.alert("Collab feature is not available")
         }
         ref={excalidrawRef}
-        initialData={initialData}
+        initialData={{
+          elements: initialData?.elements,
+          appState: { theme: initialData?.appState?.theme || "dark" },
+        }}
+        onChange={onChange}
       />
     </div>
   );
 }
+
+Excalidraw.propTypes = {
+  initialData: PropTypes.shape({}),
+  setIsSaving: PropTypes.func,
+  autoSave: PropTypes.bool,
+  setInitialState: PropTypes.func,
+};
 
 export default ExcalidrawComponent;

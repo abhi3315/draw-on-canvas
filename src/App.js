@@ -1,26 +1,31 @@
 import React from "react";
 import { Switch, Route } from "react-router-dom";
+import Header from "./components/Header";
 import ExcalidrawComponent from "./components/Excalidraw";
 
-const initialAppState = {
-  theme: "dark",
-};
-
 export default function App() {
-  const [appState, setAppState] = React.useState(initialAppState);
+  const [initialState, setInitialState] = React.useState({});
   const [autoSave, setAutoSave] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
 
   return (
-    <Switch>
-      <Route path="/:drawSessionId?">
-        {isSaving ? "Saving" : "saved"}
-        <ExcalidrawComponent
-          initialData={{ appState }}
-          setIsSaving={setIsSaving}
-          autoSave={autoSave}
-        />
-      </Route>
-    </Switch>
+    <>
+      <Header
+        isSaving={isSaving}
+        setAutoSave={setAutoSave}
+        autoSave={autoSave}
+        theme={initialState?.appState?.theme || "dark"}
+      />
+      <Switch>
+        <Route path="/:drawSessionId?">
+          <ExcalidrawComponent
+            initialData={initialState}
+            setIsSaving={setIsSaving}
+            autoSave={autoSave}
+            setInitialState={setInitialState}
+          />
+        </Route>
+      </Switch>
+    </>
   );
 }
