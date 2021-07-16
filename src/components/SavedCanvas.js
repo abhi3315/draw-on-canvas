@@ -24,7 +24,7 @@ function SavedCanvas({ setInitialData }) {
   }, []);
 
   const editCanvas = ({ initialData, drawSessionId }) => {
-    setInitialData(JSON.parse(initialData));
+    localStorage.setItem(drawSessionId, initialData);
     history.push(`/${drawSessionId}`);
   };
 
