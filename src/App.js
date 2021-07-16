@@ -2,6 +2,7 @@ import React from "react";
 import { Switch, Route } from "react-router-dom";
 import Header from "./components/Header";
 import ExcalidrawComponent from "./components/Excalidraw";
+import SavedCanvas from "./components/SavedCanvas";
 
 export default function App() {
   const [initialState, setInitialState] = React.useState({});
@@ -10,14 +11,17 @@ export default function App() {
 
   return (
     <>
-      <Header
-        isSaving={isSaving}
-        setAutoSave={setAutoSave}
-        autoSave={autoSave}
-        theme={initialState?.appState?.theme || "dark"}
-      />
       <Switch>
+        <Route exact path="/saved-canvas">
+          <SavedCanvas setInitialData={setInitialState} />
+        </Route>
         <Route path="/:drawSessionId?">
+          <Header
+            isSaving={isSaving}
+            setAutoSave={setAutoSave}
+            autoSave={autoSave}
+            theme={initialState?.appState?.theme || "dark"}
+          />
           <ExcalidrawComponent
             initialData={initialState}
             setIsSaving={setIsSaving}

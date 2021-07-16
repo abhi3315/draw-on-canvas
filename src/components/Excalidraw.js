@@ -47,18 +47,32 @@ function ExcalidrawComponent({
         },
         complete: () => {
           // gets the download url then sets the image from firebase as the value for the imgUrl key:
-          setIsSaving(false);
           storage
             .ref("images")
             .child(imageName)
             .getDownloadURL()
             .then((fireBaseUrl) => {
-              console.log(fireBaseUrl);
+              const db = firebase.firestore();
+              db.collection("data")
+                .doc(drawSessionId)
+                .set({
+                  imgUrl: fireBaseUrl,
+                  drawSessionId,
+                  initialData: JSON.stringify({
+                    elements,
+                    appState: { theme: initialData?.appState?.theme || "dark" },
+                  }),
+                });
+              setIsSaving(false);
+            })
+            .catch((err) => {
+              console.log(err);
+              setIsSaving(false);
             });
         },
       });
     });
-  }, [drawSessionId, excalidrawRef, setIsSaving]);
+  }, [drawSessionId, initialData?.appState?.theme, setIsSaving]);
 
   React.useEffect(() => {
     const interval = setInterval(() => {
